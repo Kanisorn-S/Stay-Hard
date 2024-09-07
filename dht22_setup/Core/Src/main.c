@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
+#include "dht22.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +46,7 @@ TIM_HandleTypeDef htim1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+DHT22_t DHT_22;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,76 +63,77 @@ static void MX_TIM1_Init(void);
 #define DHT22_PORT GPIOB
 #define DHT22_PIN GPIO_PIN_14
 
-uint8_t hum1, hum2, tempC1, tempC2, SUM, CHECK;
-uint32_t pMillis, cMillis;
-float temp_Celsius = 0;
-float temp_Fahrenheit = 0;
-float Humidity = 0;
-uint8_t hum_integral, hum_decimal, tempC_integral, tempC_decimal, tempF_integral, tempF_decimal;
+// uint8_t hum1, hum2, tempC1, tempC2, SUM, CHECK;
+// uint32_t pMillis, cMillis;
+// float temp_Celsius = 0;
+// float temp_Fahrenheit = 0;
+// float Humidity = 0;
+// uint8_t hum_integral, hum_decimal, tempC_integral, tempC_decimal, tempF_integral, tempF_decimal;
 char string[15];
+uint32_t pMillis, cMillis;
 
-void microDelay (uint16_t delay)
-{
-  __HAL_TIM_SET_COUNTER(&htim1, 0);
-  while (__HAL_TIM_GET_COUNTER(&htim1) < delay);
-}
+// void microDelay (uint16_t delay)
+// {
+//   __HAL_TIM_SET_COUNTER(&htim1, 0);
+//   while (__HAL_TIM_GET_COUNTER(&htim1) < delay);
+// }
 
-uint8_t DHT22_Start (void)
-{
-  uint8_t Response = 0;
-  GPIO_InitTypeDef GPIO_InitStructPrivate = {0};
-  GPIO_InitStructPrivate.Pin = DHT22_PIN;
-  GPIO_InitStructPrivate.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStructPrivate.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStructPrivate.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(DHT22_PORT, &GPIO_InitStructPrivate);
-  HAL_GPIO_WritePin (DHT22_PORT, DHT22_PIN, 0);
-  microDelay (1300);
-  HAL_GPIO_WritePin (DHT22_PORT, DHT22_PIN, 1);
-  microDelay (30);
-  GPIO_InitStructPrivate.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStructPrivate.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(DHT22_PORT, &GPIO_InitStructPrivate);
-  microDelay (40);
-  if (!(HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)))
-  {
-    microDelay (80);
-    if ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN))) Response = 1;
-  }
-  pMillis = HAL_GetTick();
-  cMillis = HAL_GetTick();
-  while ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && pMillis + 2 > cMillis)
-  {
-    cMillis = HAL_GetTick();
-  }
-  return Response;
-}
+// uint8_t DHT22_Start (void)
+// {
+//   uint8_t Response = 0;
+//   GPIO_InitTypeDef GPIO_InitStructPrivate = {0};
+//   GPIO_InitStructPrivate.Pin = DHT22_PIN;
+//   GPIO_InitStructPrivate.Mode = GPIO_MODE_OUTPUT_PP;
+//   GPIO_InitStructPrivate.Speed = GPIO_SPEED_FREQ_LOW;
+//   GPIO_InitStructPrivate.Pull = GPIO_NOPULL;
+//   HAL_GPIO_Init(DHT22_PORT, &GPIO_InitStructPrivate);
+//   HAL_GPIO_WritePin (DHT22_PORT, DHT22_PIN, 0);
+//   microDelay (1300);
+//   HAL_GPIO_WritePin (DHT22_PORT, DHT22_PIN, 1);
+//   microDelay (30);
+//   GPIO_InitStructPrivate.Mode = GPIO_MODE_INPUT;
+//   GPIO_InitStructPrivate.Pull = GPIO_PULLUP;
+//   HAL_GPIO_Init(DHT22_PORT, &GPIO_InitStructPrivate);
+//   microDelay (40);
+//   if (!(HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)))
+//   {
+//     microDelay (80);
+//     if ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN))) Response = 1;
+//   }
+//   pMillis = HAL_GetTick();
+//   cMillis = HAL_GetTick();
+//   while ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && pMillis + 2 > cMillis)
+//   {
+//     cMillis = HAL_GetTick();
+//   }
+//   return Response;
+// }
 
-uint8_t DHT22_Read (void)
-{
-  uint8_t x,y;
-  for (x=0;x<8;x++)
-  {
-    pMillis = HAL_GetTick();
-    cMillis = HAL_GetTick();
-    while (!(HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && pMillis + 2 > cMillis)
-    {
-      cMillis = HAL_GetTick();
-    }
-    microDelay (40);
-    if (!(HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)))   // if the pin is low
-      y&= ~(1<<(7-x));
-    else
-      y|= (1<<(7-x));
-    pMillis = HAL_GetTick();
-    cMillis = HAL_GetTick();
-    while ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && pMillis + 2 > cMillis)
-    {  // wait for the pin to go low
-      cMillis = HAL_GetTick();
-    }
-  }
-  return y;
-}
+// uint8_t DHT22_Read (void)
+// {
+//   uint8_t x,y;
+//   for (x=0;x<8;x++)
+//   {
+//     pMillis = HAL_GetTick();
+//     cMillis = HAL_GetTick();
+//     while (!(HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && pMillis + 2 > cMillis)
+//     {
+//       cMillis = HAL_GetTick();
+//     }
+//     microDelay (40);
+//     if (!(HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)))   // if the pin is low
+//       y&= ~(1<<(7-x));
+//     else
+//       y|= (1<<(7-x));
+//     pMillis = HAL_GetTick();
+//     cMillis = HAL_GetTick();
+//     while ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && pMillis + 2 > cMillis)
+//     {  // wait for the pin to go low
+//       cMillis = HAL_GetTick();
+//     }
+//   }
+//   return y;
+// }
 /* USER CODE END 0 */
 
 /**
@@ -174,63 +176,68 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if(DHT22_Start())
-	  	     {
-	  	       hum1 = DHT22_Read();
-	  	       hum2 = DHT22_Read();
-	  	       tempC1 = DHT22_Read();
-	  	       tempC2 = DHT22_Read();
-	  	       SUM = DHT22_Read();
-	  	       CHECK = hum1 + hum2 + tempC1 + tempC2;
-	  	       if (CHECK == SUM)
-	  	       {
-	  	         if (tempC1>127)
-	  	         {
-	  	           temp_Celsius = (float)tempC2/10*(-1);
-	  	         }
-	  	         else
-	  	         {
-	  	           temp_Celsius = (float)((tempC1<<8)|tempC2)/10;
-	  	         }
+	  if(DHT22_Start(DHT22_PORT, DHT22_PIN, &htim1, pMillis, cMillis))
+      {
+        DHT22_Read_All(&DHT_22, &huart2, DHT22_PORT, DHT22_PIN, &htim1, pMillis, cMillis);
+        sprintf(string,"Temp: %.2f C\r\n", DHT_22.temp_C);
+        HAL_UART_Transmit(&huart2, string, 15, 100);
+      }
+	  	    //  {
+	  	    //    hum1 = DHT22_Read();
+	  	    //    hum2 = DHT22_Read();
+	  	    //    tempC1 = DHT22_Read();
+	  	    //    tempC2 = DHT22_Read();
+	  	    //    SUM = DHT22_Read();
+	  	    //    CHECK = hum1 + hum2 + tempC1 + tempC2;
+	  	    //    if (CHECK == SUM)
+	  	    //    {
+	  	    //      if (tempC1>127)
+	  	    //      {
+	  	    //        temp_Celsius = (float)tempC2/10*(-1);
+	  	    //      }
+	  	    //      else
+	  	    //      {
+	  	    //        temp_Celsius = (float)((tempC1<<8)|tempC2)/10;
+	  	    //      }
 
-	  	         temp_Fahrenheit = temp_Celsius * 9/5 + 32;
+	  	    //      temp_Fahrenheit = temp_Celsius * 9/5 + 32;
 
-	  	         Humidity = (float) ((hum1<<8)|hum2)/10;
+	  	    //      Humidity = (float) ((hum1<<8)|hum2)/10;
 
-	  	         hum_integral = Humidity;
-	  	         hum_decimal = Humidity*10-hum_integral*10;
-	  	         sprintf(string,"%d.%d %%\r\n", hum_integral, hum_decimal);
-	  	         HAL_UART_Transmit(&huart2, string, 15, 1000);
+	  	    //      hum_integral = Humidity;
+	  	    //      hum_decimal = Humidity*10-hum_integral*10;
+	  	    //      sprintf(string,"%d.%d %%\r\n", hum_integral, hum_decimal);
+	  	    //      HAL_UART_Transmit(&huart2, string, 15, 1000);
 
-	  	         if (temp_Celsius < 0)
-	  	         {
-	  	           tempC_integral = temp_Celsius *(-1);
-	  	           tempC_decimal = temp_Celsius*(-10)-tempC_integral*10;
-	  	           sprintf(string,"-%d.%d C\r\n", tempC_integral, tempC_decimal);
-	  	         }
-	  	         else
-	  	         {
-	  	           tempC_integral = temp_Celsius;
-	  	           tempC_decimal = temp_Celsius*10-tempC_integral*10;
-	  	           sprintf(string,"%d.%d C\r\n", tempC_integral, tempC_decimal);
-	  	         }
-	  	         HAL_UART_Transmit(&huart2, string, 15, 1000);
+	  	    //      if (temp_Celsius < 0)
+	  	    //      {
+	  	    //        tempC_integral = temp_Celsius *(-1);
+	  	    //        tempC_decimal = temp_Celsius*(-10)-tempC_integral*10;
+	  	    //        sprintf(string,"-%d.%d C\r\n", tempC_integral, tempC_decimal);
+	  	    //      }
+	  	    //      else
+	  	    //      {
+	  	    //        tempC_integral = temp_Celsius;
+	  	    //        tempC_decimal = temp_Celsius*10-tempC_integral*10;
+	  	    //        sprintf(string,"%d.%d C\r\n", tempC_integral, tempC_decimal);
+	  	    //      }
+	  	    //      HAL_UART_Transmit(&huart2, string, 15, 1000);
 
-	  	         if(temp_Fahrenheit < 0)
-	  	         {
-	  	           tempF_integral = temp_Fahrenheit*(-1);
-	  	           tempF_decimal = temp_Fahrenheit*(-10)-tempF_integral*10;
-	  	           sprintf(string,"-%d.%d F\r\n", tempF_integral, tempF_decimal);
-	  	         }
-	  	         else
-	  	         {
-	  	           tempF_integral = temp_Fahrenheit;
-	  	           tempF_decimal = temp_Fahrenheit*10-tempF_integral*10;
-	  	           sprintf(string,"%d.%d F\r\n", tempF_integral, tempF_decimal);
-	  	         }
-	  	         HAL_UART_Transmit(&huart2, string, 15, 1000);
-	  	       }
-	  	     }
+	  	    //      if(temp_Fahrenheit < 0)
+	  	    //      {
+	  	    //        tempF_integral = temp_Fahrenheit*(-1);
+	  	    //        tempF_decimal = temp_Fahrenheit*(-10)-tempF_integral*10;
+	  	    //        sprintf(string,"-%d.%d F\r\n", tempF_integral, tempF_decimal);
+	  	    //      }
+	  	    //      else
+	  	    //      {
+	  	    //        tempF_integral = temp_Fahrenheit;
+	  	    //        tempF_decimal = temp_Fahrenheit*10-tempF_integral*10;
+	  	    //        sprintf(string,"%d.%d F\r\n", tempF_integral, tempF_decimal);
+	  	    //      }
+	  	    //      HAL_UART_Transmit(&huart2, string, 15, 1000);
+	  	    //    }
+	  	    //  }
 	  	     HAL_Delay(1000);
     /* USER CODE END WHILE */
 
