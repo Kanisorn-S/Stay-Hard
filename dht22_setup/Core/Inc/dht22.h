@@ -23,6 +23,6 @@ typedef struct
 	float temp_F;
 } DHT22_t;
 
-uint8_t DHT22_Start(GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t pMillis, uint32_t cMillis);
-uint8_t DHT22_Read(GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t pMillis, uint32_t cMillis);
-void DHT22_Read_All(DHT22_t *DataStruct, UART_HandleTypeDef *huart, GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t pMillis, uint32_t cMillis);
+uint8_t DHT22_Start(GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t *pMillis, uint32_t *cMillis);
+uint8_t DHT22_Read(GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t *pMillis, uint32_t *cMillis);
+void DHT22_Read_All(DHT22_t *DataStruct, UART_HandleTypeDef *huart, GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t *pMillis, uint32_t *cMillis);

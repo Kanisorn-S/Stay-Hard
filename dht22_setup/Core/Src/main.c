@@ -71,6 +71,8 @@ static void MX_TIM1_Init(void);
 // uint8_t hum_integral, hum_decimal, tempC_integral, tempC_decimal, tempF_integral, tempF_decimal;
 char string[15];
 uint32_t pMillis, cMillis;
+uint32_t *pPMillis = &pMillis;
+uint32_t *pCMillis = &cMillis;
 
 // void microDelay (uint16_t delay)
 // {
@@ -176,9 +178,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if(DHT22_Start(DHT22_PORT, DHT22_PIN, &htim1, pMillis, cMillis))
+	  if(DHT22_Start(DHT22_PORT, DHT22_PIN, &htim1, pPMillis, pCMillis))
       {
-        DHT22_Read_All(&DHT_22, &huart2, DHT22_PORT, DHT22_PIN, &htim1, pMillis, cMillis);
+        DHT22_Read_All(&DHT_22, &huart2, DHT22_PORT, DHT22_PIN, &htim1, pPMillis, pCMillis);
         sprintf(string,"Temp: %.2f C\r\n", DHT_22.temp_C);
         HAL_UART_Transmit(&huart2, string, 15, 100);
       }

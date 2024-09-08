@@ -16,7 +16,7 @@ void microDelay (TIM_HandleTypeDef *htim, uint16_t delay)
   while (__HAL_TIM_GET_COUNTER(htim) < delay);
 }
 
-uint8_t DHT22_Start (GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t pMillis, uint32_t cMillis)
+uint8_t DHT22_Start (GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t *pMillis, uint32_t *cMillis)
 {
   uint8_t Response = 0;
   GPIO_InitTypeDef GPIO_InitStructPrivate = {0};
@@ -38,42 +38,42 @@ uint8_t DHT22_Start (GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTyp
     microDelay (htim, 80);
     if ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN))) Response = 1;
   }
-  pMillis = HAL_GetTick();
-  cMillis = HAL_GetTick();
-  while ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && pMillis + 2 > cMillis)
+  *pMillis = HAL_GetTick();
+  *cMillis = HAL_GetTick();
+  while ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && *pMillis + 2 > *cMillis)
   {
-    cMillis = HAL_GetTick();
+    *cMillis = HAL_GetTick();
   }
   return Response;
 }
 
-uint8_t DHT22_Read (GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t pMillis, uint32_t cMillis)
+uint8_t DHT22_Read (GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t *pMillis, uint32_t *cMillis)
 {
   uint8_t x,y;
   for (x=0;x<8;x++)
   {
-    pMillis = HAL_GetTick();
-    cMillis = HAL_GetTick();
-    while (!(HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && pMillis + 2 > cMillis)
+    *pMillis = HAL_GetTick();
+    *cMillis = HAL_GetTick();
+    while (!(HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && *pMillis + 2 > *cMillis)
     {
-      cMillis = HAL_GetTick();
+      *cMillis = HAL_GetTick();
     }
     microDelay (htim, 40);
     if (!(HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)))   // if the pin is low
       y&= ~(1<<(7-x));
     else
       y|= (1<<(7-x));
-    pMillis = HAL_GetTick();
-    cMillis = HAL_GetTick();
-    while ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && pMillis + 2 > cMillis)
+    *pMillis = HAL_GetTick();
+    *cMillis = HAL_GetTick();
+    while ((HAL_GPIO_ReadPin (DHT22_PORT, DHT22_PIN)) && *pMillis + 2 > *cMillis)
     {  // wait for the pin to go low
-      cMillis = HAL_GetTick();
+      *cMillis = HAL_GetTick();
     }
   }
   return y;
 }
 
-void DHT22_Read_All(DHT22_t *DataStruct, UART_HandleTypeDef *huart, GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t pMillis, uint32_t cMillis)
+void DHT22_Read_All(DHT22_t *DataStruct, UART_HandleTypeDef *huart, GPIO_TypeDef* DHT22_PORT, uint16_t DHT22_PIN, TIM_HandleTypeDef *htim, uint32_t *pMillis, uint32_t *cMillis)
 {
   uint8_t hum1, hum2, tempC1, tempC2, SUM, CHECK;
   float temp_Celsius =0;
@@ -81,11 +81,11 @@ void DHT22_Read_All(DHT22_t *DataStruct, UART_HandleTypeDef *huart, GPIO_TypeDef
   float Humidity = 0;
   uint8_t hum_integral, hum_decimal, tempC_integral, tempC_decimal, tempF_integral, tempF_decimal;
   char string[15];
-  hum1 = DHT22_Read(DHT22_PORT, DHT22_PIN, htim, pMillis, cMillis);
-  hum2 = DHT22_Read(DHT22_PORT, DHT22_PIN, htim, pMillis, cMillis);
-  tempC1 = DHT22_Read(DHT22_PORT, DHT22_PIN, htim, pMillis, cMillis);
-  tempC2 = DHT22_Read(DHT22_PORT, DHT22_PIN, htim, pMillis, cMillis);
-  SUM = DHT22_Read(DHT22_PORT, DHT22_PIN, htim, pMillis, cMillis);
+  hum1 = DHT22_Read(DHT22_PORT, DHT22_PIN, htim, *pMillis, *cMillis);
+  hum2 = DHT22_Read(DHT22_PORT, DHT22_PIN, htim, *pMillis, *cMillis);
+  tempC1 = DHT22_Read(DHT22_PORT, DHT22_PIN, htim, *pMillis, *cMillis);
+  tempC2 = DHT22_Read(DHT22_PORT, DHT22_PIN, htim, *pMillis, *cMillis);
+  SUM = DHT22_Read(DHT22_PORT, DHT22_PIN, htim, *pMillis, *cMillis);
   CHECK = hum1 + hum2 + tempC1 + tempC2;
   if (CHECK == SUM)
   {
